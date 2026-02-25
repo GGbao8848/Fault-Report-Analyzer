@@ -1,0 +1,5 @@
+{
+  "name": "Fault Report Analyzer",
+  "description": "Upload and analyze fault detection reports from Excel files. Tracks fault counts by owner and type.",
+  "requestFramePermissions": []
+}
