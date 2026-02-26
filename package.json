@@ -4,12 +4,14 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "tsx server.ts",
+    "dev": "vite",
+    "dev:frontend": "vite",
+    "dev:backend": "python3 -m uvicorn backend.main:app --reload --host 0.0.0.0 --port 8000",
     "build": "tsc -b && vite build",
     "preview": "vite preview",
     "clean": "rm -rf dist",
     "lint": "tsc --noEmit",
-    "start": "node server.ts"
+    "start": "python3 -m uvicorn backend.main:app --host 0.0.0.0 --port 8000"
   },
   "dependencies": {
     "@google/genai": "^1.29.0",

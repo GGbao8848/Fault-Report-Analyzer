@@ -1,0 +1,6 @@
+{
+  "archive_backup_enabled": true,
+  "archive_backup_dir": "/media/qzq/4t1/TV_n8n/FaultAnalyz/",
+  "max_upload_size_mb": 500,
+  "alarm_warning_threshold": 100
+}

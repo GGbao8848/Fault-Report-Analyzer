@@ -1,0 +1,25 @@
+#数据加载器配置
+#  本地需要识别的图片路径
+local_dir_paths: [
+  "/mnt/commontf/tvdata/TV/训练测试/普客/YAWUBAO/京广上行/20250901/004719_4",
+  "/mnt/commontf/tvdata/TV/训练测试/普客/YAWUBAO/陇海上行/20250901/000859_1",
+  "/mnt/commontf/tvdata/TV/训练测试/普客/YAWUBAO/洛阳客整所/20250901/062629_2",
+  "/mnt/commontf/tvdata/TV/训练测试/普客/YAWUBAO/南联二线/20250901/063259_3",
+  "/mnt/commontf/tvdata/TV/训练测试/普客/YAWUBAO/新乡客整所/20250901/054840_6",
+  "/mnt/commontf/tvdata/TV/2-动集正常过车/CR200J1-A/HKJ_渝贵线重庆西上行_CR200J1A_20250302_104233_5",
+  "/mnt/commontf/tvdata/TV/2-动集正常过车/CR200J1-B/HSBK_成昆线成都上行_CR200J1B_20250301_221448_28",
+  "/mnt/commontf/tvdata/TV/2-动集正常过车/CR200J1-C/KT_20250802203159_CR200J1-C_PW-220K",
+  "/mnt/commontf/tvdata/TV/2-动集正常过车/CR200J3-A/HSBK_成昆线成都上行_CR200J3A_20250223_225010_30",
+  "/mnt/commontf/tvdata/TV/2-动集正常过车/CR200J3-B/HSBK_成昆线成都上行_CR200J3B_20250223_100619_2",
+]
+# 每次区图片的数量，为 -1 时，表示会一次性获取目录中的所有图片，
+# 如果 max_load_img_count > 1，则最多不会超过 max_load_img_count
+fetch_count: -1
+# 为了不爆内存，对获取图片的数量做了限制，
+# 优先级高于 fetch_count，为 -1 时表示不做限制
+max_load_img_count: -1
+# 读取图片时，使用到的线程数量
+max_workers: 16
+alarm_mode:
+  local:
+    enable: True

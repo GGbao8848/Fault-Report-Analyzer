@@ -1,0 +1,178 @@
+[
+  {
+    "user": "bwh",
+    "uid": 1101,
+    "ip": "192.168.2.11",
+    "group": "algorithm",
+    "note": "",
+    "keycloak_id": ""
+  },
+  {
+    "user": "jkd",
+    "uid": 1102,
+    "ip": "192.168.2.12",
+    "group": "algorithm",
+    "note": "",
+    "keycloak_id": ""
+  },
+  {
+    "user": "mgl",
+    "uid": 1103,
+    "ip": "192.168.2.13",
+    "group": "algorithm",
+    "note": "",
+    "keycloak_id": ""
+  },
+  {
+    "user": "cr",
+    "uid": 1104,
+    "ip": "192.168.2.14",
+    "group": "algorithm",
+    "note": "",
+    "keycloak_id": "crui"
+  },
+  {
+    "user": "lzy",
+    "uid": 1105,
+    "ip": "192.168.2.15",
+    "group": "algorithm",
+    "note": "",
+    "keycloak_id": ""
+  },
+  {
+    "user": "llq",
+    "uid": 1106,
+    "ip": "192.168.2.16",
+    "group": "algorithm",
+    "note": "",
+    "keycloak_id": ""
+  },
+  {
+    "user": "yj",
+    "uid": 1107,
+    "ip": "192.168.2.17",
+    "group": "algorithm",
+    "note": "",
+    "keycloak_id": "yjie"
+  },
+  {
+    "user": "lmj",
+    "uid": 1108,
+    "ip": "192.168.2.18",
+    "group": "algorithm",
+    "note": "",
+    "keycloak_id": ""
+  },
+  {
+    "user": "xrj",
+    "uid": 1109,
+    "ip": "192.168.2.19",
+    "group": "algorithm",
+    "note": "",
+    "keycloak_id": ""
+  },
+  {
+    "user": "lky",
+    "uid": 1110,
+    "ip": "192.168.2.20",
+    "group": "algorithm",
+    "note": "",
+    "keycloak_id": ""
+  },
+  {
+    "user": "zrp",
+    "uid": 1111,
+    "ip": "192.168.2.21",
+    "group": "algorithm",
+    "note": "",
+    "keycloak_id": ""
+  },
+  {
+    "user": "lsl",
+    "uid": 1112,
+    "ip": "192.168.2.22",
+    "group": "algorithm",
+    "note": "",
+    "keycloak_id": ""
+  },
+  {
+    "user": "wjx",
+    "uid": 1113,
+    "ip": "192.168.2.23",
+    "group": "algorithm",
+    "note": "",
+    "keycloak_id": ""
+  },
+  {
+    "user": "yxc",
+    "uid": 1114,
+    "ip": "192.168.2.24",
+    "group": "",
+    "note": "",
+    "keycloak_id": ""
+  },
+  {
+    "user": "yby",
+    "uid": 1115,
+    "ip": "192.168.2.25",
+    "group": "algorithm",
+    "note": "",
+    "keycloak_id": ""
+  },
+  {
+    "user": "sk",
+    "uid": 1116,
+    "ip": "192.168.2.26",
+    "group": "algorithm",
+    "note": "",
+    "keycloak_id": "skui"
+  },
+  {
+    "user": "whn",
+    "uid": 1117,
+    "ip": "192.168.2.27",
+    "group": "algorithm",
+    "note": "",
+    "keycloak_id": ""
+  },
+  {
+    "user": "xll",
+    "uid": 1118,
+    "ip": "192.168.2.28",
+    "group": "",
+    "note": "",
+    "keycloak_id": ""
+  },
+  {
+    "user": "lzz",
+    "uid": 1119,
+    "ip": "192.168.2.29",
+    "group": "algorithm",
+    "note": "",
+    "keycloak_id": ""
+  },
+  {
+    "user": "th",
+    "uid": 1120,
+    "ip": "192.168.2.30",
+    "group": "algorithm",
+    "note": "",
+    "keycloak_id": ""
+  },
+  {
+    "user": "xhy",
+    "uid": 1121,
+    "ip": "192.168.2.31",
+    "group": "algorithm",
+    "note": "",
+    "keycloak_id": ""
+  },
+  {
+    "user": "zhy",
+    "uid": 1121,
+    "ip": "192.168.0.165",
+    "group": "algorithm",
+    "note": "",
+    "keycloak_id": ""
+  }
+]
