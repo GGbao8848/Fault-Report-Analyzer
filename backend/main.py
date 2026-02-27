@@ -4,6 +4,7 @@ import ipaddress
 import io
 import json
 import re
+import socket
 import sqlite3
 import tarfile
 import zipfile
@@ -43,6 +44,7 @@ REPORT_TYPE_NORMAL = "normal"
 REPORT_TYPE_AGGREGATE_LATEST_ALL = "aggregate_latest_all"
 AGGREGATE_REPORT_FILENAME = "汇总"
 USER_IP_MAP: dict[str, dict[str, Any]] = {}
+SERVICE_LOCAL_IPS: set[str] = set()
 DEFAULT_APP_CONFIG: dict[str, Any] = {
     "archive_backup_enabled": True,
     "archive_backup_dir": "archive_backups",
@@ -237,6 +239,66 @@ def get_requester_identity(request: Request) -> dict[str, Any]:
         "ip_source": source,
         "user": user,
     }
+
+
+def collect_service_local_ips() -> set[str]:
+    ips: set[str] = set()
+
+    for candidate in ("127.0.0.1", "::1"):
+        normalized = normalize_ip(candidate)
+        if normalized:
+            ips.add(normalized)
+
+    host_candidates = {socket.gethostname(), socket.getfqdn()}
+    for host in host_candidates:
+        if not host:
+            continue
+        try:
+            infos = socket.getaddrinfo(host, None)
+        except socket.gaierror:
+            continue
+        for info in infos:
+            sockaddr = info[4]
+            if not sockaddr:
+                continue
+            normalized = normalize_ip(str(sockaddr[0]))
+            if normalized:
+                ips.add(normalized)
+
+    try:
+        with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as sock:
+            sock.connect(("8.8.8.8", 80))
+            normalized = normalize_ip(str(sock.getsockname()[0]))
+            if normalized:
+                ips.add(normalized)
+    except OSError:
+        pass
+
+    return ips
+
+
+def is_service_machine_ip(client_ip: str | None) -> bool:
+    normalized = normalize_ip(client_ip)
+    if not normalized:
+        return False
+    return normalized in SERVICE_LOCAL_IPS
+
+
+def can_delete_report(client_ip: str | None, uploader_ip: str | None) -> tuple[bool, str | None]:
+    if is_service_machine_ip(client_ip):
+        return True, None
+
+    requester_ip = normalize_ip(client_ip)
+    if not requester_ip:
+        return False, "Delete forbidden: requester IP unavailable"
+
+    report_uploader_ip = normalize_ip(uploader_ip)
+    if not report_uploader_ip:
+        return False, "Delete forbidden: report uploader IP unavailable"
+
+    if requester_ip != report_uploader_ip:
+        return False, "Delete forbidden: only reports uploaded from your IP can be deleted"
+    return True, None
 
 
 def normalize_filename(name: str | None) -> str:
@@ -721,11 +783,12 @@ async def process_form_file_input(request: Request) -> dict[str, Any]:
 
 @app.on_event("startup")
 async def startup_event() -> None:
-    global USER_IP_MAP, APP_CONFIG
+    global USER_IP_MAP, APP_CONFIG, SERVICE_LOCAL_IPS
     init_db()
     APP_CONFIG = load_app_config()
     ensure_archive_backup_dir()
     USER_IP_MAP = load_user_ip_map()
+    SERVICE_LOCAL_IPS = collect_service_local_ips()
 
 
 @app.get("/api/health")
@@ -785,8 +848,25 @@ async def get_report(report_id: int) -> dict[str, Any]:
 
 
 @app.delete("/api/reports/{report_id}")
-async def delete_report(report_id: int) -> dict[str, bool]:
+async def delete_report(report_id: int, request: Request) -> dict[str, bool]:
+    requester_identity = get_requester_identity(request)
+    requester_ip = requester_identity.get("client_ip")
     with get_connection() as conn:
+        row = conn.execute(
+            """
+            SELECT uploader_ip
+            FROM reports
+            WHERE id = ?
+            """,
+            (report_id,),
+        ).fetchone()
+        if row is None:
+            raise HTTPException(status_code=404, detail="Report not found")
+
+        allowed, deny_reason = can_delete_report(requester_ip, row["uploader_ip"])
+        if not allowed:
+            raise HTTPException(status_code=403, detail=deny_reason)
+
         cursor = conn.execute("DELETE FROM reports WHERE id = ?", (report_id,))
         conn.commit()
     if cursor.rowcount == 0:

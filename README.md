@@ -52,7 +52,7 @@ npm run dev
 
 ```bash
 npm run build
-python3 -m uvicorn backend.main:app --host 0.0.0.0 --port 8000
+python3 -m uvicorn backend.main:app --host 0.0.0.0 --port 3001
 ```
 
 打开：
@@ -93,7 +93,7 @@ Base URL: `http://localhost:8000`
 
 ```bash
 curl -X POST "http://localhost:8000/api/reports/analyze" \
-  -F "file=/media/qzq/4t1/TV/htkj_zhengxian/runs/STATUS/alarm_local.csv"
+  -F "file=/media/qzq/4t/TV/htkj_zhengxian/runs/STATUS/alarm_local.csv"
 ```
 
 也支持传统文件上传方式：
@@ -156,6 +156,10 @@ curl "http://localhost:8000/api/reports/1"
 ### 删除报告
 
 `DELETE /api/reports/:id`
+
+权限规则：
+- 服务启动机器发起的请求可删除任意报告（识别为服务机本地回环 IP 与本机网卡 IP）
+- 其他机器仅可删除 `uploader_ip` 与当前请求 IP 相同的报告
 
 ## Excel 字段说明
 

@@ -174,5 +174,21 @@
     "group": "algorithm",
     "note": "",
     "keycloak_id": ""
+  },
+  {
+    "user": "xjq",
+    "uid": 1121,
+    "ip": "192.168.2.34",
+    "group": "algorithm",
+    "note": "",
+    "keycloak_id": ""
+  },
+  {
+    "user": "xlh",
+    "uid": 1121,
+    "ip": "192.168.2.35",
+    "group": "algorithm",
+    "note": "",
+    "keycloak_id": ""
   }
 ]
