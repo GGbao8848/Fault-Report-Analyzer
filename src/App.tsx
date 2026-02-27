@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Upload, FileSpreadsheet, Trash2, BarChart3, AlertCircle, User, ChevronRight, ChevronDown, History } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 
@@ -43,6 +43,11 @@ interface UiConfig {
   alarm_warning_threshold: number;
 }
 
+interface LocalDirConfigResponse {
+  path: string;
+  content: string;
+}
+
 const AGGREGATE_REPORT_TYPE = 'aggregate_latest_all';
 
 export default function App() {
@@ -56,10 +61,14 @@ export default function App() {
   const [requester, setRequester] = useState<RequesterIdentity | null>(null);
   const [onlyMine, setOnlyMine] = useState(false);
   const [alarmWarningThreshold, setAlarmWarningThreshold] = useState(100);
+  const [localDirConfigPath, setLocalDirConfigPath] = useState('');
+  const [localDirConfigContent, setLocalDirConfigContent] = useState('加载中...');
+  const aggregateRequestInFlightRef = useRef(false);
 
   useEffect(() => {
     void fetchRequester();
     void fetchUiConfig();
+    void fetchLocalDirConfig();
     void fetchReports();
   }, []);
 
@@ -89,6 +98,23 @@ export default function App() {
     }
   };
 
+  const fetchLocalDirConfig = async () => {
+    try {
+      const res = await fetch('/api/local-dir-config');
+      if (res.ok) {
+        const data = (await res.json()) as LocalDirConfigResponse;
+        setLocalDirConfigPath(data.path || '');
+        setLocalDirConfigContent(data.content || '');
+      } else {
+        const data = await res.json().catch(() => ({}));
+        setLocalDirConfigContent(data.detail || '读取配置失败');
+      }
+    } catch (err) {
+      console.error('Failed to fetch local dir config', err);
+      setLocalDirConfigContent('读取配置失败');
+    }
+  };
+
   const fetchReports = async () => {
     try {
       const res = await fetch('/api/reports');
@@ -114,6 +140,22 @@ export default function App() {
     setIsLoadingReport(true);
     try {
       const res = await fetch(`/api/reports/${id}`);
+      if (res.status === 404) {
+        const listRes = await fetch('/api/reports');
+        if (listRes.ok) {
+          const latestReports = (await listRes.json()) as Report[];
+          setReports(latestReports);
+          const fallbackReport =
+            latestReports.find((report) => report.id === id) ??
+            latestReports.find((report) => report.report_type === AGGREGATE_REPORT_TYPE) ??
+            latestReports[0] ??
+            null;
+          setSelectedReport(fallbackReport);
+          setExpandedOwners({});
+          return;
+        }
+        throw new Error('Report not found');
+      }
       if (!res.ok) {
         throw new Error('Failed to fetch report details');
       }
@@ -182,6 +224,10 @@ export default function App() {
   };
 
   const handleAggregateLatest = async () => {
+    if (aggregateRequestInFlightRef.current) {
+      return;
+    }
+    aggregateRequestInFlightRef.current = true;
     setIsAggregating(true);
     try {
       const res = await fetch('/api/reports/aggregate-latest', { method: 'POST' });
@@ -205,6 +251,7 @@ export default function App() {
       console.error('Aggregate latest error', err);
       alert(err instanceof Error ? err.message : 'Aggregate latest reports failed.');
     } finally {
+      aggregateRequestInFlightRef.current = false;
       setIsAggregating(false);
     }
   };
@@ -289,7 +336,7 @@ export default function App() {
               ) : (
                 <>
                   <Upload className={`w-8 h-8 mb-2 ${dragActive ? 'text-indigo-500' : 'text-gray-400'}`} />
-                  <p className="text-sm text-gray-500 font-medium">Click or drag report / archive</p>
+                  <p className="text-sm text-gray-500 font-medium">上传runs/STATUS/alarm_local.csv</p>
                 </>
               )}
             </div>
@@ -433,6 +480,25 @@ export default function App() {
 
       {/* Main Content */}
       <div className="flex-1 overflow-y-auto bg-gray-50/50">
+        <div className="max-w-5xl mx-auto px-8 pt-6">
+          <details className="bg-white border border-gray-200 rounded-xl shadow-sm">
+            <summary className="cursor-pointer list-none px-4 py-3 font-semibold text-gray-900 flex items-center justify-between">
+              <span>请使用此处过车图全量测试(10趟车)</span>
+              <span className="text-xs text-gray-500">点击展开</span>
+            </summary>
+            <div className="px-4 pb-4">
+              {localDirConfigPath ? (
+                <div className="text-xs text-gray-500 mb-2 break-all">
+                  {localDirConfigPath}
+                </div>
+              ) : null}
+              <pre className="text-xs bg-gray-50 border border-gray-200 rounded-lg p-3 overflow-auto whitespace-pre-wrap break-all text-gray-700">
+                {localDirConfigContent}
+              </pre>
+            </div>
+          </details>
+        </div>
+
         {isLoadingReport ? (
           <div className="h-full flex items-center justify-center text-gray-500">
             Loading report...

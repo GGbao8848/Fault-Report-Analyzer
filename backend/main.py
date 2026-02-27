@@ -22,6 +22,7 @@ DB_PATH = PROJECT_ROOT / "reports.db"
 DIST_DIR = PROJECT_ROOT / "dist"
 USER_IP_MAP_PATH = PROJECT_ROOT / "backend" / "config" / "user_ip_map.json"
 APP_CONFIG_PATH = PROJECT_ROOT / "backend" / "config" / "app_config.json"
+LOCAL_DIR_CONFIG_PATH = PROJECT_ROOT / "backend" / "config" / "local_dir_config.yaml"
 
 OWNER_KEYS = ("pkgs", "owner", "负责人", "处理人", "责任人")
 FAULT_KEYS = ("desc", "fault", "fault_desc", "故障", "故障描述", "问题描述")
@@ -527,27 +528,68 @@ def create_latest_aggregate_report(conn: sqlite3.Connection) -> dict[str, Any]:
         "source_count": len(source_reports),
         "source_reports": source_reports,
     }
-
-    conn.execute(
-        "DELETE FROM reports WHERE report_type = ?",
-        (REPORT_TYPE_AGGREGATE_LATEST_ALL,),
-    )
-    cursor = conn.execute(
+    existing_rows = conn.execute(
         """
-        INSERT INTO reports (filename, summary, raw_data, uploader_user, uploader_uid, uploader_ip, report_type)
-        VALUES (?, ?, ?, ?, ?, ?, ?)
+        SELECT id
+        FROM reports
+        WHERE report_type = ?
+        ORDER BY id ASC
         """,
-        (
-            AGGREGATE_REPORT_FILENAME,
-            json.dumps(merged_summary, ensure_ascii=False),
-            json.dumps(raw_data_payload, ensure_ascii=False),
-            "system",
-            None,
-            None,
-            REPORT_TYPE_AGGREGATE_LATEST_ALL,
-        ),
-    )
-    report_id = int(cursor.lastrowid)
+        (REPORT_TYPE_AGGREGATE_LATEST_ALL,),
+    ).fetchall()
+
+    if existing_rows:
+        report_id = int(existing_rows[0]["id"])
+        conn.execute(
+            """
+            UPDATE reports
+            SET filename = ?,
+                created_at = CURRENT_TIMESTAMP,
+                summary = ?,
+                raw_data = ?,
+                uploader_user = ?,
+                uploader_uid = ?,
+                uploader_ip = ?,
+                report_type = ?
+            WHERE id = ?
+            """,
+            (
+                AGGREGATE_REPORT_FILENAME,
+                json.dumps(merged_summary, ensure_ascii=False),
+                json.dumps(raw_data_payload, ensure_ascii=False),
+                "system",
+                None,
+                None,
+                REPORT_TYPE_AGGREGATE_LATEST_ALL,
+                report_id,
+            ),
+        )
+
+        # Keep exactly one aggregate report record.
+        extra_ids = [int(row["id"]) for row in existing_rows[1:]]
+        if extra_ids:
+            conn.executemany(
+                "DELETE FROM reports WHERE id = ?",
+                [(item_id,) for item_id in extra_ids],
+            )
+    else:
+        cursor = conn.execute(
+            """
+            INSERT INTO reports (filename, summary, raw_data, uploader_user, uploader_uid, uploader_ip, report_type)
+            VALUES (?, ?, ?, ?, ?, ?, ?)
+            """,
+            (
+                AGGREGATE_REPORT_FILENAME,
+                json.dumps(merged_summary, ensure_ascii=False),
+                json.dumps(raw_data_payload, ensure_ascii=False),
+                "system",
+                None,
+                None,
+                REPORT_TYPE_AGGREGATE_LATEST_ALL,
+            ),
+        )
+        report_id = int(cursor.lastrowid)
+
     conn.commit()
     report = get_report_by_id(conn, report_id)
     if report is None:
@@ -700,6 +742,23 @@ async def requester(request: Request) -> dict[str, Any]:
 async def ui_config() -> dict[str, Any]:
     return {
         "alarm_warning_threshold": get_alarm_warning_threshold(),
+    }
+
+
+@app.get("/api/local-dir-config")
+async def local_dir_config() -> dict[str, Any]:
+    if not LOCAL_DIR_CONFIG_PATH.exists():
+        raise HTTPException(
+            status_code=404,
+            detail=f"Config file not found: {LOCAL_DIR_CONFIG_PATH}",
+        )
+    try:
+        content = LOCAL_DIR_CONFIG_PATH.read_text(encoding="utf-8")
+    except UnicodeDecodeError:
+        content = LOCAL_DIR_CONFIG_PATH.read_text(encoding="utf-8", errors="replace")
+    return {
+        "path": str(LOCAL_DIR_CONFIG_PATH),
+        "content": content,
     }
 
 
