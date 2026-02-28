@@ -200,7 +200,7 @@ curl "http://localhost:8000/api/reports/1"
 - `archive_backup_enabled`: 是否启用压缩包备份
 - `archive_backup_dir`: 压缩包备份目录（可用绝对路径；相对路径按项目根目录解析）
 - `max_upload_size_mb`: 上传大小上限（单位 MB，默认 `500`）
-- `alarm_warning_threshold`: 报警数量阈值（默认 `100`，超过后前端橙色标记）
+- `alarm_warning_threshold`: 报警数量阈值（默认 `100`，前端用于标记“负责人下存在单个项目报警数超过该阈值”）
 
 保存规则：
 - 备份文件会按用户名称分子目录保存：

@@ -552,7 +552,9 @@ export default function App() {
               </h3>
               
               {selectedReport.summary.map((item, index) => {
-                const overLimit = item.total > alarmWarningThreshold;
+                const overThresholdFaults = item.faults.filter((fault) => fault.count > alarmWarningThreshold);
+                const hasOverThresholdFaults = overThresholdFaults.length > 0;
+                const overThresholdFaultNames = overThresholdFaults.map((fault) => fault.name).join('、');
                 return (
                 <motion.div 
                   initial={{ opacity: 0, y: 10 }}
@@ -561,17 +563,17 @@ export default function App() {
                   key={item.owner} 
                   className={`
                     bg-white rounded-xl shadow-sm border overflow-hidden
-                    ${overLimit ? 'border-orange-300 ring-1 ring-orange-200' : 'border-gray-200'}
+                    ${hasOverThresholdFaults ? 'border-orange-300 ring-1 ring-orange-200' : 'border-gray-200'}
                   `}
                 >
                   <button 
                     onClick={() => toggleOwner(item.owner)}
-                    className={`w-full flex items-center justify-between p-4 transition-colors ${overLimit ? 'hover:bg-orange-50' : 'hover:bg-gray-50'}`}
+                    className={`w-full flex items-center justify-between p-4 transition-colors ${hasOverThresholdFaults ? 'hover:bg-orange-50' : 'hover:bg-gray-50'}`}
                   >
                     <div className="flex items-center gap-4">
                       <div className={`
                         w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold
-                        ${overLimit
+                        ${hasOverThresholdFaults
                           ? 'bg-orange-100 text-orange-700'
                           : index < 3
                             ? 'bg-indigo-100 text-indigo-700'
@@ -582,19 +584,27 @@ export default function App() {
                       <div className="text-left">
                         <div className="font-semibold text-gray-900 flex items-center gap-2">
                           <span>{item.owner}</span>
-                          {overLimit ? (
+                          {hasOverThresholdFaults ? (
                             <span className="text-[10px] px-2 py-0.5 rounded-full bg-orange-100 text-orange-700 border border-orange-200">
-                              OVER {alarmWarningThreshold}
+                              存在超{alarmWarningThreshold}项目
                             </span>
                           ) : null}
                         </div>
                         <div className="text-xs text-gray-500">{item.faults.length} unique fault types</div>
+                        {hasOverThresholdFaults ? (
+                          <div
+                            className="text-xs text-orange-600 mt-1 truncate"
+                            title={`超限项目：${overThresholdFaultNames}`}
+                          >
+                            超限项目：{overThresholdFaultNames}
+                          </div>
+                        ) : null}
                       </div>
                     </div>
                     
                     <div className="flex items-center gap-6">
                       <div className="text-right">
-                        <div className={`text-lg font-bold ${overLimit ? 'text-orange-600' : 'text-gray-900'}`}>{item.total}</div>
+                        <div className={`text-lg font-bold ${hasOverThresholdFaults ? 'text-orange-600' : 'text-gray-900'}`}>{item.total}</div>
                         <div className="text-xs text-gray-500 uppercase tracking-wide">Faults</div>
                       </div>
                       {expandedOwners[item.owner] ? (
@@ -611,7 +621,7 @@ export default function App() {
                         initial={{ height: 0 }}
                         animate={{ height: 'auto' }}
                         exit={{ height: 0 }}
-                        className={`overflow-hidden border-t ${overLimit ? 'bg-orange-50/40 border-orange-100' : 'bg-gray-50 border-gray-100'}`}
+                        className={`overflow-hidden border-t ${hasOverThresholdFaults ? 'bg-orange-50/40 border-orange-100' : 'bg-gray-50 border-gray-100'}`}
                       >
                         <div className="p-4">
                           <table className="w-full text-sm">
